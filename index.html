@@ -9,44 +9,45 @@
   <h1>Consulta de Asistencia</h1>
 
   <label>Año:</label>
-  <input type="text" id="year"><br>
+  <input type="text" id="year" placeholder="Ej: 2025"><br>
 
   <label>Mes:</label>
-  <input type="text" id="month"><br>
+  <input type="text" id="month" placeholder="Ej: MARZO"><br>
 
   <label>Estudiante:</label>
-  <input type="text" id="student"><br>
+  <input type="text" id="student" placeholder="Ej: Erick Atencio"><br>
 
   <label>Grupo:</label>
-  <input type="text" id="group"><br>
-
-  <label>Archivo Excel:</label>
-  <input type="file" id="fileInput"><br><br>
+  <input type="text" id="group" placeholder="Ej: X°A"><br><br>
 
   <button onclick="searchData()">Buscar</button>
 
   <h2>Resultado:</h2>
-  <div id="result"></div>
+  <div id="result">Cargando datos, por favor espera...</div>
 
   <script>
     let excelData = [];
 
-    document.getElementById('fileInput').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      const reader = new FileReader();
+    // URL raw de tu archivo Excel en GitHub
+    const excelUrl = "https://raw.githubusercontent.com/eliezer319/MiApp/main/Datos.xlsx";
 
-      reader.onload = (evt) => {
-        const data = new Uint8Array(evt.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-
+    // Función para cargar y parsear el Excel
+    async function loadExcel() {
+      try {
+        const res = await fetch(excelUrl);
+        if (!res.ok) throw new Error("No se pudo cargar el archivo Excel.");
+        const arrayBuffer = await res.arrayBuffer();
+        const data = new Uint8Array(arrayBuffer);
+        const workbook = XLSX.read(data, { type: "array" });
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
         excelData = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+        document.getElementById("result").innerHTML = "Datos cargados. Ingresa los filtros y presiona Buscar.";
+      } catch (error) {
+        document.getElementById("result").innerHTML = "Error cargando datos: " + error.message;
+      }
+    }
 
-        alert("Archivo cargado correctamente.");
-      };
-
-      reader.readAsArrayBuffer(file);
-    });
+    loadExcel();
 
     function searchData() {
       const year = document.getElementById("year").value.trim().toLowerCase();
@@ -55,10 +56,9 @@
       const group = document.getElementById("group").value.trim().toLowerCase();
 
       const resultDiv = document.getElementById("result");
-      resultDiv.innerHTML = "";
 
       if (excelData.length === 0) {
-        alert("Primero debes cargar un archivo Excel.");
+        alert("Los datos aún no están cargados. Intenta de nuevo en unos segundos.");
         return;
       }
 
@@ -70,35 +70,33 @@
       );
 
       if (match) {
-        let html = "<table border='1'><tr>";
+        let html = "<table border='1' cellpadding='5' cellspacing='0'><tr>";
 
-        // Filtrar encabezados para omitir "31" si está vacío
-        Object.keys(match)
-          .filter(key => !(key === "31" && (match[key] === "" || match[key] === null || match[key] === undefined)))
-          .forEach(key => {
-            html += `<th>${key}</th>`;
-          });
+        // Mostrar solo las columnas que no sean "31" (evitar columna extra vacía)
+        const keys = Object.keys(match).filter(k => k !== "31");
 
+        // Encabezados
+        keys.forEach(key => {
+          html += `<th>${key}</th>`;
+        });
         html += "</tr><tr>";
 
-        // Mostrar valores con el mismo filtro para que columnas y datos coincidan
-        Object.entries(match)
-          .filter(([key, value]) => !(key === "31" && (value === "" || value === null || value === undefined)))
-          .forEach(([key, value]) => {
-            let display = value;
+        // Valores procesados para asistencia
+        keys.forEach(key => {
+          let val = match[key];
 
-            if (!isNaN(parseInt(key)) && parseInt(key) >= 1 && parseInt(key) <= 31) {
-              if (String(value).toLowerCase() === "verdadero" || String(value).toLowerCase() === "true") {
-                display = "✔️";
-              } else if (String(value).toLowerCase() === "falso" || String(value).toLowerCase() === "false") {
-                display = "";
-              } else {
-                display = value; // A, T, E u otros valores se muestran tal cual
-              }
-            }
+          // Procesar los días (1 a 30)
+          if (!isNaN(parseInt(key)) && parseInt(key) >= 1 && parseInt(key) <= 30) {
+            const v = String(val).toLowerCase();
+            if (v === "verdadero" || v === "true") val = "✔️";
+            else if (v === "falso" || v === "false") val = "";
+            else if (v === "a") val = "A";    // Ausencia
+            else if (v === "t") val = "T";    // Tardanza
+            else if (v === "e") val = "E";    // Excusa
+          }
 
-            html += `<td>${display}</td>`;
-          });
+          html += `<td>${val}</td>`;
+        });
 
         html += "</tr></table>";
         resultDiv.innerHTML = html;
