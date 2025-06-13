@@ -2,66 +2,111 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>MiApp - Buscar Estudiante</title>
+  <title>Consulta de Asistencia</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-  <h1>MiApp - Buscar Estudiante en Excel</h1>
+  <h1>Consulta de Asistencia</h1>
 
-  <input type="file" id="input-excel" />
-  <br><br>
+  <label>Año:</label>
+  <input type="text" id="year"><br>
 
-  <label for="buscar">Nombre del estudiante:</label>
-  <input type="text" id="buscar" placeholder="Ejemplo: Juan Pérez">
-  <button onclick="buscar()">Buscar</button>
+  <label>Mes:</label>
+  <input type="text" id="month"><br>
 
-  <h3>Resultado:</h3>
-  <div id="resultado"></div>
+  <label>Estudiante:</label>
+  <input type="text" id="student"><br>
 
-  <!-- Carga SheetJS desde CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <label>Grupo:</label>
+  <input type="text" id="group"><br>
+
+  <label>Archivo Excel:</label>
+  <input type="file" id="fileInput"><br><br>
+
+  <button onclick="searchData()">Buscar</button>
+
+  <h2>Resultado:</h2>
+  <div id="result"></div>
 
   <script>
-    let datosExcel = [];
+    let excelData = [];
 
-    // Cargar Excel
-    document.getElementById('input-excel').addEventListener('change', function(e) {
-      const archivo = e.target.files[0];
-      const lector = new FileReader();
-      lector.onload = function(e) {
-        const datos = new Uint8Array(e.target.result);
-        const libro = XLSX.read(datos, { type: 'array' });
-        const hoja = libro.Sheets[libro.SheetNames[0]];
-        datosExcel = XLSX.utils.sheet_to_json(hoja);
-        alert('Archivo cargado correctamente');
-        console.log(datosExcel);
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = (evt) => {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        excelData = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+
+        alert("Archivo cargado correctamente.");
       };
-      lector.readAsArrayBuffer(archivo);
+
+      reader.readAsArrayBuffer(file);
     });
 
-    // Buscar estudiante
-    function buscar() {
-      const nombre = document.getElementById('buscar').value.trim();
-      const resultados = datosExcel.filter(fila => fila.ESTUDIANTE === nombre);
-      const contenedor = document.getElementById('resultado');
+    function searchData() {
+      const year = document.getElementById("year").value.trim().toLowerCase();
+      const month = document.getElementById("month").value.trim().toLowerCase();
+      const student = document.getElementById("student").value.trim().toLowerCase();
+      const group = document.getElementById("group").value.trim().toLowerCase();
 
-      if (resultados.length > 0) {
-        let tabla = "<table border='1'><tr><th>ESTUDIANTE</th><th>GRUPO</th><th>MES</th><th>AÑO</th><th>TEST1</th><th>TEST2</th></tr>";
-        resultados.forEach(r => {
-          tabla += `<tr>
-            <td>${r.ESTUDIANTE}</td>
-            <td>${r.GRUPO}</td>
-            <td>${r.MES}</td>
-            <td>${r.AÑO}</td>
-            <td>${r.TEST1}</td>
-            <td>${r.TEST2}</td>
-          </tr>`;
-        });
-        tabla += "</table>";
-        contenedor.innerHTML = tabla;
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "";
+
+      if (excelData.length === 0) {
+        alert("Primero debes cargar un archivo Excel.");
+        return;
+      }
+
+      const match = excelData.find(row =>
+        String(row["AÑOS"]).trim().toLowerCase() === year &&
+        String(row["MESES"]).trim().toLowerCase() === month &&
+        String(row["ESTUDIANTE"]).trim().toLowerCase() === student &&
+        String(row["GRUPO"]).trim().toLowerCase() === group
+      );
+
+      if (match) {
+        let html = "<table border='1'><tr>";
+
+        // Filtrar encabezados para omitir "31" si está vacío
+        Object.keys(match)
+          .filter(key => !(key === "31" && (match[key] === "" || match[key] === null || match[key] === undefined)))
+          .forEach(key => {
+            html += `<th>${key}</th>`;
+          });
+
+        html += "</tr><tr>";
+
+        // Mostrar valores con el mismo filtro para que columnas y datos coincidan
+        Object.entries(match)
+          .filter(([key, value]) => !(key === "31" && (value === "" || value === null || value === undefined)))
+          .forEach(([key, value]) => {
+            let display = value;
+
+            if (!isNaN(parseInt(key)) && parseInt(key) >= 1 && parseInt(key) <= 31) {
+              if (String(value).toLowerCase() === "verdadero" || String(value).toLowerCase() === "true") {
+                display = "✔️";
+              } else if (String(value).toLowerCase() === "falso" || String(value).toLowerCase() === "false") {
+                display = "";
+              } else {
+                display = value; // A, T, E u otros valores se muestran tal cual
+              }
+            }
+
+            html += `<td>${display}</td>`;
+          });
+
+        html += "</tr></table>";
+        resultDiv.innerHTML = html;
       } else {
-        contenedor.innerHTML = 'No encontrado';
+        resultDiv.innerHTML = "<p>No se encontró ningún registro con esos datos.</p>";
       }
     }
   </script>
 </body>
 </html>
+
