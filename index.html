@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>MiApp - Buscar Estudiante</title>
+</head>
+<body>
+  <h1>MiApp - Buscar Estudiante en Excel</h1>
+
+  <input type="file" id="input-excel" />
+  <br><br>
+
+  <label for="buscar">Nombre del estudiante:</label>
+  <input type="text" id="buscar" placeholder="Ejemplo: Juan Pérez">
+  <button onclick="buscar()">Buscar</button>
+
+  <h3>Resultado:</h3>
+  <div id="resultado"></div>
+
+  <!-- Carga SheetJS desde CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <script>
+    let datosExcel = [];
+
+    // Cargar Excel
+    document.getElementById('input-excel').addEventListener('change', function(e) {
+      const archivo = e.target.files[0];
+      const lector = new FileReader();
+      lector.onload = function(e) {
+        const datos = new Uint8Array(e.target.result);
+        const libro = XLSX.read(datos, { type: 'array' });
+        const hoja = libro.Sheets[libro.SheetNames[0]];
+        datosExcel = XLSX.utils.sheet_to_json(hoja);
+        alert('Archivo cargado correctamente');
+        console.log(datosExcel);
+      };
+      lector.readAsArrayBuffer(archivo);
+    });
+
+    // Buscar estudiante
+    function buscar() {
+      const nombre = document.getElementById('buscar').value.trim();
+      const resultados = datosExcel.filter(fila => fila.ESTUDIANTE === nombre);
+      const contenedor = document.getElementById('resultado');
+
+      if (resultados.length > 0) {
+        let tabla = "<table border='1'><tr><th>ESTUDIANTE</th><th>GRUPO</th><th>MES</th><th>AÑO</th><th>TEST1</th><th>TEST2</th></tr>";
+        resultados.forEach(r => {
+          tabla += `<tr>
+            <td>${r.ESTUDIANTE}</td>
+            <td>${r.GRUPO}</td>
+            <td>${r.MES}</td>
+            <td>${r.AÑO}</td>
+            <td>${r.TEST1}</td>
+            <td>${r.TEST2}</td>
+          </tr>`;
+        });
+        tabla += "</table>";
+        contenedor.innerHTML = tabla;
+      } else {
+        contenedor.innerHTML = 'No encontrado';
+      }
+    }
+  </script>
+</body>
+</html>
