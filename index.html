@@ -4,34 +4,169 @@
   <meta charset="UTF-8" />
   <title>Consulta de Asistencia</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    header {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    header img {
+      width: 80px;
+      height: 80px;
+    }
+
+    header h1 {
+      margin: 5px 0;
+      font-size: 1.8rem;
+      color: #0066cc;
+    }
+
+    header p {
+      margin: 2px 0;
+      font-size: 1.1rem;
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input {
+      font-size: 1rem;
+      padding: 10px;
+      width: 90%;
+      max-width: 400px;
+      margin: 5px auto;
+      display: block;
+      border: 2px solid #333;
+      border-radius: 5px;
+    }
+
+    button {
+      background: #0066cc;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      margin-top: 15px;
+      font-size: 1.1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    button:hover {
+      background: #004d99;
+      transform: scale(1.05);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th {
+      background: #0066cc;
+      color: #fff;
+      padding: 10px;
+    }
+
+    td {
+      padding: 8px;
+      border: 1px solid #ddd;
+    }
+
+    h2, h3 {
+      color: #003366;
+    }
+
+    .legend {
+      background: #fff;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: left;
+      max-width: 600px;
+      margin: 20px auto;
+      font-size: 1rem;
+    }
+
+    @media screen and (max-width: 600px) {
+      body {
+        font-size: 1rem;
+      }
+
+      table {
+        font-size: 0.85rem;
+      }
+
+      header h1 {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Consulta de Asistencia</h1>
+  <header>
+    <!-- LOGO: https://www.google.com/search?q=logo+de+cosas+de+ingles+para+colocar+en+html&udm=2&sxsrf=AE3TifPBtarOBs2UcesAOgS1NiNdXDgBmQ%3A1749853192863#vhid=k8IRWu9N58KLFM&vssid=mosaic -->
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png" alt="Logo Centro Educativo">
+    <h1>CENTRO EDUCATIVO BOCA DE REMEDIO</h1>
+    <p>COMARCA NGÄBE BUGLÉ</p>
+    <p>BACHILLER EN CIENCIAS</p>
+    <p>MATERIA: INGLÉS</p>
+    <p>PROFESOR: ELIEZER MENDOZA</p>
+  </header>
+
+  <h2>Consulta de Asistencia</h2>
 
   <label>Año:</label>
-  <input type="text" id="year" placeholder="Ej: 2025"><br>
+  <input type="text" id="year" placeholder="Ej: 2025">
 
   <label>Mes:</label>
-  <input type="text" id="month" placeholder="Ej: MARZO"><br>
+  <input type="text" id="month" placeholder="Ej: MARZO">
 
   <label>Estudiante:</label>
-  <input type="text" id="student" placeholder="Ej: Erick Atencio"><br>
+  <input type="text" id="student" placeholder="Ej: Erick Atencio">
 
   <label>Grupo:</label>
-  <input type="text" id="group" placeholder="Ej: X°A"><br><br>
+  <input type="text" id="group" placeholder="Ej: X°A">
 
   <button onclick="searchData()">Buscar</button>
 
-  <h2>Resultado:</h2>
+  <h3>Resultado:</h3>
   <div id="result">Cargando datos, por favor espera...</div>
+
+  <div class="legend">
+    <h3>LEYENDA:</h3>
+    <ul>
+      <li><strong>✔️ (Gancho)</strong>: ASISTENCIA</li>
+      <li><strong>Casilla en blanco</strong>: NO HUBO CLASE</li>
+      <li><strong>T</strong>: TARDANZA</li>
+      <li><strong>E</strong>: EXCUSA</li>
+      <li><strong>A</strong>: AUSENCIA</li>
+    </ul>
+  </div>
 
   <script>
     let excelData = [];
 
-    // URL raw de tu archivo Excel en GitHub
     const excelUrl = "https://raw.githubusercontent.com/eliezer319/MiApp/main/Datos.xlsx";
 
-    // Función para cargar y parsear el Excel
     async function loadExcel() {
       try {
         const res = await fetch(excelUrl);
@@ -70,35 +205,52 @@
       );
 
       if (match) {
-        let html = "<table border='1' cellpadding='5' cellspacing='0'><tr>";
+        let html = "";
 
-        // Mostrar solo las columnas que no sean "31" (evitar columna extra vacía)
-        const keys = Object.keys(match).filter(k => k !== "31");
+        html += "<h3>Datos del Estudiante</h3>";
+        html += "<table><tr><th>AÑO</th><th>MES</th><th>ESTUDIANTE</th><th>GRUPO</th></tr>";
+        html += `<tr><td>${match["AÑOS"]}</td><td>${match["MESES"]}</td><td>${match["ESTUDIANTE"]}</td><td>${match["GRUPO"]}</td></tr></table>`;
 
-        // Encabezados
-        keys.forEach(key => {
-          html += `<th>${key}</th>`;
-        });
-        html += "</tr><tr>";
+        html += "<h3>Asistencia por semanas</h3>";
+        html += "<table>";
 
-        // Valores procesados para asistencia
-        keys.forEach(key => {
-          let val = match[key];
+        for (let week = 0; week < 5; week++) {
+          html += "<tr>";
+          for (let day = 1 + week * 7; day <= Math.min(7 + week * 7, 30); day++) {
+            html += `<th>Día ${day}</th>`;
+          }
+          html += "</tr>";
 
-          // Procesar los días (1 a 30)
-          if (!isNaN(parseInt(key)) && parseInt(key) >= 1 && parseInt(key) <= 30) {
+          html += "<tr>";
+          for (let day = 1 + week * 7; day <= Math.min(7 + week * 7, 30); day++) {
+            let val = match[day] || "";
             const v = String(val).toLowerCase();
             if (v === "verdadero" || v === "true") val = "✔️";
             else if (v === "falso" || v === "false") val = "";
-            else if (v === "a") val = "A";    // Ausencia
-            else if (v === "t") val = "T";    // Tardanza
-            else if (v === "e") val = "E";    // Excusa
+            else if (v === "a") val = "A";
+            else if (v === "t") val = "T";
+            else if (v === "e") val = "E";
+            html += `<td>${val}</td>`;
           }
+          html += "</tr>";
+        }
+        html += "</table>";
 
-          html += `<td>${val}</td>`;
-        });
+        html += "<h3>Resumen</h3>";
+        let porcentaje = match["PORCENTAJE"];
+        if (!isNaN(parseFloat(porcentaje))) {
+          porcentaje = (parseFloat(porcentaje) * 100).toFixed(2) + "%";
+        }
 
-        html += "</tr></table>";
+        html += "<table><tr><th>ASISTENCIA</th><th>AUSENCIA</th><th>TARDANZA</th><th>EXCUSA</th><th>PORCENTAJE</th></tr>";
+        html += `<tr>
+          <td>${match["ASISTENCIA"]}</td>
+          <td>${match["AUSENCIA"]}</td>
+          <td>${match["TARDANZA"]}</td>
+          <td>${match["EXCUSA"]}</td>
+          <td>${porcentaje}</td>
+        </tr></table>`;
+
         resultDiv.innerHTML = html;
       } else {
         resultDiv.innerHTML = "<p>No se encontró ningún registro con esos datos.</p>";
@@ -107,4 +259,3 @@
   </script>
 </body>
 </html>
-
