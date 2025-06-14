@@ -2,129 +2,114 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Consulta de Asistencia</title>
+  <title>Consulta de Asistencia - Calendario</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #4facfe, #00f2fe);
-      color: #333;
-      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #d9f0ff; /* Celeste clarito */
       padding: 20px;
       text-align: center;
+      color: #333;
+      font-weight: 600; /* negrita */
+      font-size: 1.1rem; /* un poco más grande */
     }
-
     header {
-      background: #fff;
+      background: linear-gradient(135deg, #3a8dde, #60b0f4);
       padding: 20px;
       border-radius: 10px;
-      margin-bottom: 20px;
+      color: white;
+      font-weight: 700;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
-
     header img {
       width: 80px;
       height: 80px;
+      border-radius: 50%;
     }
-
-    header h1 {
-      margin: 5px 0;
-      font-size: 1.8rem;
-      color: #0066cc;
-    }
-
-    header p {
-      margin: 2px 0;
-      font-size: 1.1rem;
-      color: #333;
-    }
-
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-
-    input {
-      font-size: 1rem;
+    input, button {
       padding: 10px;
+      margin: 5px;
+      font-size: 1rem;
       width: 90%;
       max-width: 400px;
-      margin: 5px auto;
-      display: block;
-      border: 2px solid #333;
       border-radius: 5px;
+      border: 1px solid #ccc;
     }
-
     button {
       background: #0066cc;
       color: #fff;
-      padding: 10px 20px;
       border: none;
-      margin-top: 15px;
-      font-size: 1.1rem;
-      border-radius: 5px;
       cursor: pointer;
-      transition: transform 0.2s, background 0.2s;
+      border-radius: 5px;
+      font-weight: 700;
     }
-
     button:hover {
       background: #004d99;
-      transform: scale(1.05);
     }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      margin: 10px auto;
+      max-width: 700px;
       background: #fff;
       border-radius: 10px;
-      overflow: hidden;
-    }
-
-    th {
-      background: #0066cc;
-      color: #fff;
       padding: 10px;
     }
-
-    td {
-      padding: 8px;
+    .day {
       border: 1px solid #ddd;
+      padding: 5px;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      font-weight: bold;
     }
-
-    h2, h3 {
-      color: #003366;
-    }
-
-    .legend {
+    .leyenda {
+      margin: 20px auto;
       background: #fff;
       border-radius: 10px;
-      padding: 15px;
-      text-align: left;
-      max-width: 600px;
-      margin: 20px auto;
-      font-size: 1rem;
+      padding: 10px;
+      max-width: 700px;
+      font-weight: 700;
+      font-size: 1.1rem;
     }
-
-    @media screen and (max-width: 600px) {
-      body {
-        font-size: 1rem;
-      }
-
-      table {
-        font-size: 0.85rem;
-      }
-
-      header h1 {
-        font-size: 1.4rem;
-      }
+    .leyenda span {
+      display: inline-block;
+      margin: 5px 10px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      color: #fff;
+      font-weight: 600;
+    }
+    .A { background: red; }
+    .T { background: orange; }
+    .E { background: skyblue; }
+    .V { background: green; }
+    footer {
+      margin-top: 40px;
+      color: #000;
+      font-weight: bold;
+    }
+    h3 {
+      margin-top: 30px;
+    }
+    #myChart {
+      max-width: 800px;
+      margin: 20px auto;
+    }
+    canvas {
+      font-size: 1.2rem;
     }
   </style>
 </head>
 <body>
+
   <header>
-    <!-- LOGO: https://www.google.com/search?q=logo+de+cosas+de+ingles+para+colocar+en+html&udm=2&sxsrf=AE3TifPBtarOBs2UcesAOgS1NiNdXDgBmQ%3A1749853192863#vhid=k8IRWu9N58KLFM&vssid=mosaic -->
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png" alt="Logo Centro Educativo">
+    <img src="logo.png" alt="Logo Centro Educativo">
     <h1>CENTRO EDUCATIVO BOCA DE REMEDIO</h1>
     <p>COMARCA NGÄBE BUGLÉ</p>
     <p>BACHILLER EN CIENCIAS</p>
@@ -134,128 +119,150 @@
 
   <h2>Consulta de Asistencia</h2>
 
-  <label>Año:</label>
-  <input type="text" id="year" placeholder="Ej: 2025">
-
-  <label>Mes:</label>
-  <input type="text" id="month" placeholder="Ej: MARZO">
-
-  <label>Estudiante:</label>
+  <input type="number" id="year" value="2025" placeholder="Ej: Año escolar (2025)">
+  <label>Fecha inicio:</label>
+  <input type="date" id="startDate" placeholder="Ej: Fecha de inicio">
+  <label>Fecha fin:</label>
+  <input type="date" id="endDate" placeholder="Ej: Fecha de fin">
   <input type="text" id="student" placeholder="Ej: Erick Atencio">
-
-  <label>Grupo:</label>
   <input type="text" id="group" placeholder="Ej: X°A">
 
   <button onclick="searchData()">Buscar</button>
 
-  <h3>Resultado:</h3>
-  <div id="result">Cargando datos, por favor espera...</div>
-
-  <div class="legend">
-    <h3>LEYENDA:</h3>
-    <ul>
-      <li><strong>✔️ (Gancho)</strong>: ASISTENCIA</li>
-      <li><strong>Casilla en blanco</strong>: NO HUBO CLASE</li>
-      <li><strong>T</strong>: TARDANZA</li>
-      <li><strong>E</strong>: EXCUSA</li>
-      <li><strong>A</strong>: AUSENCIA</li>
-    </ul>
+  <div class="leyenda">
+    <strong>Leyenda:</strong>
+    <span class="V">✔️ Asistencia</span>
+    <span class="A">A Ausencia</span>
+    <span class="T">T Tardanza</span>
+    <span class="E">E Excusa</span>
+    <span style="background: #fff; border: 1px solid #ccc; color: #333;">Blanco: Sin clases</span>
   </div>
+
+  <div id="result">Esperando datos...</div>
+
+  <canvas id="myChart" height="400"></canvas>
+
+  <footer>Elaborado por Eliezer Mendoza — All rights reserved</footer>
 
   <script>
     let excelData = [];
-
     const excelUrl = "https://raw.githubusercontent.com/eliezer319/MiApp/main/Datos.xlsx";
 
     async function loadExcel() {
       try {
         const res = await fetch(excelUrl);
-        if (!res.ok) throw new Error("No se pudo cargar el archivo Excel.");
-        const arrayBuffer = await res.arrayBuffer();
-        const data = new Uint8Array(arrayBuffer);
+        const data = new Uint8Array(await res.arrayBuffer());
         const workbook = XLSX.read(data, { type: "array" });
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
         excelData = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
-        document.getElementById("result").innerHTML = "Datos cargados. Ingresa los filtros y presiona Buscar.";
-      } catch (error) {
-        document.getElementById("result").innerHTML = "Error cargando datos: " + error.message;
+        document.getElementById("result").innerHTML = "Datos cargados. Listo para buscar.";
+      } catch (e) {
+        document.getElementById("result").innerHTML = "Error cargando datos: " + e;
       }
     }
 
     loadExcel();
 
+    function getMonthName(m) {
+      return ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][m];
+    }
+
     function searchData() {
-      const year = document.getElementById("year").value.trim().toLowerCase();
-      const month = document.getElementById("month").value.trim().toLowerCase();
+      const year = parseInt(document.getElementById("year").value);
       const student = document.getElementById("student").value.trim().toLowerCase();
       const group = document.getElementById("group").value.trim().toLowerCase();
-
-      const resultDiv = document.getElementById("result");
-
-      if (excelData.length === 0) {
-        alert("Los datos aún no están cargados. Intenta de nuevo en unos segundos.");
+      const start = new Date(document.getElementById("startDate").value);
+      const end = new Date(document.getElementById("endDate").value);
+      const result = document.getElementById("result");
+      if (!start || !end || end < start) {
+        alert("Selecciona fechas válidas.");
         return;
       }
 
-      const match = excelData.find(row =>
-        String(row["AÑOS"]).trim().toLowerCase() === year &&
-        String(row["MESES"]).trim().toLowerCase() === month &&
-        String(row["ESTUDIANTE"]).trim().toLowerCase() === student &&
-        String(row["GRUPO"]).trim().toLowerCase() === group
-      );
+      let asist = 0, aus = 0, tar = 0, exc = 0, totalMarked = 0;
+      result.innerHTML = "";
 
-      if (match) {
-        let html = "";
+      for (let m = start.getMonth(); m <= end.getMonth(); m++) {
+        const monthName = getMonthName(m);
+        const row = excelData.find(r =>
+          String(r["AÑOS"]).trim() == year &&
+          String(r["MESES"]).trim().toLowerCase() == monthName &&
+          String(r["ESTUDIANTE"]).trim().toLowerCase() == student &&
+          String(r["GRUPO"]).trim().toLowerCase() == group
+        );
+        if (!row) continue;
 
-        html += "<h3>Datos del Estudiante</h3>";
-        html += "<table><tr><th>AÑO</th><th>MES</th><th>ESTUDIANTE</th><th>GRUPO</th></tr>";
-        html += `<tr><td>${match["AÑOS"]}</td><td>${match["MESES"]}</td><td>${match["ESTUDIANTE"]}</td><td>${match["GRUPO"]}</td></tr></table>`;
+        const daysInMonth = new Date(year, m+1, 0).getDate();
+        let html = `<h3>${monthName.toUpperCase()}</h3><div class="calendar">`;
+        html += `<div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>`;
 
-        html += "<h3>Asistencia por semanas</h3>";
-        html += "<table>";
+        const firstDay = new Date(year, m, 1).getDay();
+        let skip = firstDay === 0 ? 6 : firstDay - 1;
 
-        for (let week = 0; week < 5; week++) {
-          html += "<tr>";
-          for (let day = 1 + week * 7; day <= Math.min(7 + week * 7, 30); day++) {
-            html += `<th>Día ${day}</th>`;
+        for (let s = 0; s < skip; s++) html += `<div></div>`;
+
+        for (let d = 1; d <= daysInMonth; d++) {
+          const date = new Date(year, m, d);
+          if (date < start || date > end) {
+            html += `<div class="day"><span>${d}</span></div>`;
+            continue;
           }
-          html += "</tr>";
-
-          html += "<tr>";
-          for (let day = 1 + week * 7; day <= Math.min(7 + week * 7, 30); day++) {
-            let val = match[day] || "";
-            const v = String(val).toLowerCase();
-            if (v === "verdadero" || v === "true") val = "✔️";
-            else if (v === "falso" || v === "false") val = "";
-            else if (v === "a") val = "A";
-            else if (v === "t") val = "T";
-            else if (v === "e") val = "E";
-            html += `<td>${val}</td>`;
+          let v = String(row[d] || "").toLowerCase();
+          let mark = "", bg = "";
+          if (v === "verdadero" || v === "true") {
+            mark = "✔️"; bg = "green"; asist++; totalMarked++;
           }
-          html += "</tr>";
+          else if (v === "a") {
+            mark = "A"; bg = "red"; aus++; totalMarked++;
+          }
+          else if (v === "t") {
+            mark = "T"; bg = "orange"; tar++; totalMarked++;
+          }
+          else if (v === "e") {
+            mark = "E"; bg = "skyblue"; exc++; totalMarked++;
+          } else {
+            bg = "white"; mark = "";
+          }
+          html += `<div class="day" style="background:${bg}"><span>${d}</span>${mark}</div>`;
         }
-        html += "</table>";
 
-        html += "<h3>Resumen</h3>";
-        let porcentaje = match["PORCENTAJE"];
-        if (!isNaN(parseFloat(porcentaje))) {
-          porcentaje = (parseFloat(porcentaje) * 100).toFixed(2) + "%";
-        }
-
-        html += "<table><tr><th>ASISTENCIA</th><th>AUSENCIA</th><th>TARDANZA</th><th>EXCUSA</th><th>PORCENTAJE</th></tr>";
-        html += `<tr>
-          <td>${match["ASISTENCIA"]}</td>
-          <td>${match["AUSENCIA"]}</td>
-          <td>${match["TARDANZA"]}</td>
-          <td>${match["EXCUSA"]}</td>
-          <td>${porcentaje}</td>
-        </tr></table>`;
-
-        resultDiv.innerHTML = html;
-      } else {
-        resultDiv.innerHTML = "<p>No se encontró ningún registro con esos datos.</p>";
+        html += "</div>";
+        result.innerHTML += html;
       }
+
+      let score = (asist * 1) + (exc * 1) + (tar * 0.5);
+      let percent = totalMarked ? ((score / totalMarked) * 100).toFixed(2) : 0;
+      result.innerHTML += `<h3>Resumen</h3>
+      <p><span style="color:green;">✔️ Asistencia:</span> ${asist} | 
+         <span style="color:red;">A Ausencia:</span> ${aus} | 
+         <span style="color:orange;">T Tardanza:</span> ${tar} | 
+         <span style="color:skyblue;">E Excusa:</span> ${exc}</p>
+      <p>Porcentaje de Asistencia: <strong>${percent}%</strong></p>`;
+
+      if (window.barChart) window.barChart.destroy();
+      const ctx = document.getElementById("myChart").getContext("2d");
+      window.barChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ["✔️ Asistencia", "A Ausencia", "T Tardanza", "E Excusa"],
+          datasets: [{
+            data: [asist, aus, tar, exc],
+            backgroundColor: ["green", "red", "orange", "skyblue"]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { font: { size: 16 } } },
+            x: { ticks: { font: { size: 16 } } }
+          }
+        }
+      });
     }
   </script>
+
 </body>
 </html>
