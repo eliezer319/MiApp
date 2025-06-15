@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Consulta HISTNOT desde GitHub</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #eef;
+    }
+    input, select, button {
+      margin: 8px auto;
+      display: block;
+      width: 90%;
+      max-width: 400px;
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 5px;
+    }
+    button {
+      background: #0077cc;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+    #resultado {
+      margin-top: 20px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      overflow-x: auto;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+    th {
+      background-color: #0077cc;
+      color: white;
+    }
+    h4 {
+      margin-top: 30px;
+      background: #0077cc;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .apreciacion h4 {
+      background: #28a745;
+    }
+    .final h4 {
+      background: #6c757d;
+    }
+    .barra {
+      background: #ddd;
+      border-radius: 5px;
+      overflow: hidden;
+      max-width: 150px;
+      margin: auto;
+    }
+    .barra-interna {
+      padding: 4px 0;
+      font-weight: bold;
+      font-size: 0.85rem;
+      color: #000;
+      text-align: center;
+    }
+    .mensaje {
+      font-weight: bold;
+      text-align: center;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-size: 1.1rem;
+    }
+    .mensaje.alerta {
+      background-color: #ffe5e5;
+      color: #d8000c;
+    }
+    .mensaje.bien {
+      background-color: #e6ffe6;
+      color: #155724;
+    }
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center;">Consulta de Notas - HISTNOT (desde GitHub)</h2>
+
+  <input type="number" id="anio" placeholder="Año: Ej. 2025" min="1900" max="2100" />
+  <select id="trimestre">
+    <option value="">Seleccione Trimestre</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+  </select>
+  <input type="text" id="estudiante" placeholder="Nombre del estudiante: Ej. Erick Atencio" />
+  <input type="text" id="grupo" placeholder="Grupo: Ej. X°A" />
+  <button onclick="buscarNotas()">Buscar Notas</button>
+
+  <div id="resultado">Cargando datos desde GitHub...</div>
+
+  <script>
+    const urlExcel = "https://raw.githubusercontent.com/eliezer319/MiApp/f2e7d7bf9d3b497c61d6deac2cef4c424049e06f/Datos1.xlsx";
+    let datosExcel = [];
+
+    // Cargar Excel desde GitHub
+    fetch(urlExcel)
+      .then(response => {
+        if (!response.ok) throw new Error("Error al cargar archivo Excel.");
+        return response.arrayBuffer();
+      })
+      .then(data => {
+        const workbook = XLSX.read(data, { type: "array" });
+        const primeraHoja = workbook.Sheets[workbook.SheetNames[0]];
+        datosExcel = XLSX.utils.sheet_to_json(primeraHoja, { defval: "" });
+        document.getElementById("resultado").innerHTML = "<p style='color:green;'>✔ Datos cargados. Puedes buscar notas.</p>";
+      })
+      .catch(error => {
+        document.getElementById("resultado").innerHTML = `<p style="color:red;">❌ ${error.message}</p>`;
+      });
+
+    function normalizarTexto(texto) {
+      return String(texto).toLowerCase().trim().replace(/\s+/g, " ");
+    }
+
+    function generarBarra(valor) {
+      const num = parseFloat(valor);
+      if (isNaN(num)) return valor;
+      const redondeado = num.toFixed(1);
+      let color = "#28a745"; // verde
+      if (num < 2) color = "#dc3545"; // rojo
+      else if (num < 3) color = "#ffc107"; // amarillo
+      return `
+        <div class="barra">
+          <div class="barra-interna" style="width: 100%; background: ${color};">${redondeado}</div>
+        </div>`;
+    }
+
+    function recolectarNotas(fila) {
+      const campos = [
+        ...[1,2,3,4,5,6].map(n => fila[`TEST#${n}`]),
+        fila["TEST FINAL"],
+        ...[1,2,3,4,5,6].map(n => fila[`APRECIACION #${n}`]),
+        fila["APRECIACION FINAL"],
+        fila["EXAMEN"],
+        fila["BOLETIN"]
+      ];
+      return campos.map(x => parseFloat(x)).filter(n => !isNaN(n));
+    }
+
+    function buscarNotas() {
+      const anioInput = document.getElementById("anio").value.trim();
+      const trimestreInput = document.getElementById("trimestre").value.trim();
+      const estudianteInput = normalizarTexto(document.getElementById("estudiante").value);
+      const grupoInput = normalizarTexto(document.getElementById("grupo").value);
+      const resultado = document.getElementById("resultado");
+
+      if (!anioInput || !trimestreInput || !estudianteInput || !grupoInput) {
+        resultado.innerHTML = "<p style='color:red;'>⚠ Por favor, completa todos los campos antes de buscar.</p>";
+        return;
+      }
+
+      const anio = parseInt(anioInput, 10);
+      const trimestre = Number(trimestreInput);
+
+      const fila = datosExcel.find(row =>
+        parseInt(row["AÑOS"]) === anio &&
+        Number(row["TRIMESTRE"]) === trimestre &&
+        normalizarTexto(row["ESTUDIANTE"]) === estudianteInput &&
+        normalizarTexto(row["GRUPO"]) === grupoInput
+      );
+
+      if (!fila) {
+        resultado.innerHTML = "<p style='color:red;'>❌ No se encontraron datos con esos criterios.</p>";
+        return;
+      }
+
+      const notasNumericas = recolectarNotas(fila);
+      const necesitaAyuda = notasNumericas.some(n => n < 3);
+      const mensajeFinal = necesitaAyuda
+        ? `<div class="mensaje alerta">🔴 Algunas notas están bajas. ¡Debes ponerte las pilas!</div>`
+        : `<div class="mensaje bien">🟢 ¡Buen trabajo! Sigue así.</div>`;
+
+      let html = `
+        <h3 style="text-align:center;">Notas de <em>${fila["ESTUDIANTE"]}</em> - Grupo <strong>${fila["GRUPO"]}</strong> - Año ${fila["AÑOS"]} - Trimestre ${fila["TRIMESTRE"]}</h3>
+
+        <div>
+          <h4>📝 TESTS</h4>
+          <table>
+            <thead><tr><th>Test</th><th>Nota</th></tr></thead>
+            <tbody>
+              ${[1,2,3,4,5,6].map(n => `<tr><td>Test #${n}</td><td>${generarBarra(fila[`TEST#${n}`])}</td></tr>`).join("")}
+              <tr style="background:#eef;"><td><strong>Test Final</strong></td><td><strong>${generarBarra(fila["TEST FINAL"])}</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="apreciacion">
+          <h4>🎨 APRECIACIONES</h4>
+          <table>
+            <thead><tr><th>Apreciación</th><th>Nota</th></tr></thead>
+            <tbody>
+              ${[1,2,3,4,5,6].map(n => `<tr><td>Apreciación #${n}</td><td>${generarBarra(fila[`APRECIACION #${n}`])}</td></tr>`).join("")}
+              <tr style="background:#eef;"><td><strong>Apreciación Final</strong></td><td><strong>${generarBarra(fila["APRECIACION FINAL"])}</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="final">
+          <h4>📌 Evaluación Final</h4>
+          <table>
+            <tr><th>EXAMEN</th><td>${generarBarra(fila["EXAMEN"])}</td></tr>
+            <tr><th>BOLETÍN</th><td>${generarBarra(fila["BOLETIN"])}</td></tr>
+          </table>
+        </div>
+
+        ${mensajeFinal}
+      `;
+
+      resultado.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
