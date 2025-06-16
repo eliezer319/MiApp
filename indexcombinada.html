@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Centro Educativo - Asistencia y Notas</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #d9f0ff;
+      padding: 20px;
+      color: #333;
+      font-weight: 600;
+      font-size: 1.1rem;
+      text-align: center;
+.datos-estudiante {
+  background-color: #e6f7ff;
+  border: 2px solid #3a8dde;
+  padding: 15px 25px;
+  margin: 20px auto;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #003366;
+  max-width: 600px;
+  text-align: left;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.datos-estudiante h3 {
+  margin-top: 0;
+  color: #0066cc;
+}
+
+    }
+   header {
+  background-color: #00264d; /* Azul marino oscuro */
+  padding: 20px;
+  border-radius: 10px;
+  color: #ffeb3b; /* Amarillo claro */
+  font-weight: 700;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  margin-bottom: 20px;
+}
+
+    header img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      vertical-align: middle;
+      margin-right: 15px;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      gap: 20px;
+    }
+    .tab-button {
+      background: #0066cc;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .tab-button:hover {
+      background: #004d99;
+    }
+    .tab-button.active {
+      background: #003366;
+    }
+    .tab-content {
+      display: none;
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    input, button, select {
+      padding: 10px;
+      margin: 5px 0;
+      font-size: 1rem;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-weight: 600;
+    }
+    button {
+      background: #0066cc;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #004d99;
+    }
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      margin: 10px 0 30px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .day {
+      border: 1px solid #ddd;
+      padding: 5px;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      font-weight: bold;
+    }
+    .leyenda {
+      margin: 20px auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px;
+      max-width: 700px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      text-align: center;
+    }
+    .leyenda span {
+      display: inline-block;
+      margin: 5px 10px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      color: #fff;
+      font-weight: 600;
+    }
+    .A { background: red; }
+    .T { background: orange; }
+    .E { background: skyblue; }
+    .V { background: green; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 30px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      text-align: center;
+      font-weight: 600;
+    }
+    th {
+      background-color: #3a8dde;
+      color: white;
+    }
+    footer {
+      margin-top: 40px;
+      color: #000;
+      font-weight: bold;
+      text-align: center;
+    }
+    #myChart, #myChartNotas {
+      max-width: 800px;
+      margin: 20px auto 40px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <img 
+    src="https://raw.githubusercontent.com/eliezer319/MiApp/main/sharpened_image.jpg" 
+    alt="Logo del Centro Educativo" 
+    style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; margin-right: 20px;" 
+  />
+  <span>
+    <h1 style="display:inline-block; margin:0;">CENTRO EDUCATIVO BOCA DE REMEDIO</h1><br />
+    <p style="margin:0;">COMARCA NGÄBE BUGLÉ</p>
+    <p style="margin:0;">BACHILLER EN CIENCIAS</p>
+    <p style="margin:0;">MATERIA: INGLÉS</p>
+    <p style="margin:0;">PROFESOR: ELIEZER MENDOZA</p>
+  </span>
+</header>
+
+<div class="observacion-marquee">
+  <span>BIENVENIDOS ESTIMADOS ESTUDIANTES DEL C.E BOCA DE REMEDIOS , ESTE ES UN ESPACIO DISEÑADO PARA QUE PUEDAN CONSULTAR DE FORMA RAPIDA Y SEGURA SUS ASISTENCIAS Y RENDIMIENTO ACADEMICO.</span>
+</div>
+
+<style>
+.observacion-marquee {
+  width: 100%;
+  overflow: hidden;
+  background-color: #f0f8ff;
+  color: #003366;
+  font-weight: 700;
+  padding: 12px 0;
+  font-size: 1.1rem;
+  font-family: Arial, sans-serif;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.observacion-marquee span {
+  display: inline-block;
+  white-space: nowrap;
+  padding-left: 100%;
+  animation: scroll-text 20s linear infinite;
+}
+
+@keyframes scroll-text {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+</style>
+
+
+
+
+
+
+<div class="tabs">
+  <button class="tab-button active" data-tab="asistencia">CONSULTA DE ASISTENCIA</button>
+  <button class="tab-button" data-tab="notas">CONSULTA DE NOTAS</button>
+</div>
+
+
+
+<!-- TAB ASISTENCIA -->
+<div id="asistencia" class="tab-content active">
+  <h2>Consulta de Asistencia</h2>
+<div id="datosEstudiante" class="datos-estudiante"></div>
+  <div class="form-group">
+    <label for="year">Año:</label>
+    <input type="number" id="year" value="2025" placeholder="Ej: Año escolar (2025)">
+  </div>
+
+  <div class="form-group">
+    <label for="startDate">Fecha inicio:</label>
+    <input type="date" id="startDate" placeholder="Ej: Fecha de inicio">
+  </div>
+
+  <div class="form-group">
+    <label for="endDate">Fecha fin:</label>
+    <input type="date" id="endDate" placeholder="Ej: Fecha de fin">
+  </div>
+
+  <div class="form-group">
+    <label for="student">Estudiante:</label>
+    <input type="text" id="student" placeholder="Ej: Erick Atencio">
+  </div>
+
+  <div class="form-group">
+    <label for="group">Grupo:</label>
+    <input type="text" id="group" placeholder="Ej: X°A">
+  </div>
+
+  <button onclick="searchData()">Buscar</button>
+  <div class="leyenda">
+    <strong>Leyenda:</strong>
+    <span class="V">✔️ Asistencia</span>
+    <span class="A">A Ausencia</span>
+    <span class="T">T Tardanza</span>
+    <span class="E">E Excusa</span>
+    <span style="background: #fff; border: 1px solid #ccc; color: #333;">Blanco: Sin clases</span>
+  </div>
+
+  <div id="result">Esperando datos...</div>
+
+  <canvas id="myChart" height="400"></canvas>
+</div>
+
+ 
+
+
+<!-- TAB NOTAS -->
+<div id="notas" class="tab-content">
+  <h2>Consulta de Notas</h2>
+
+<div id="infoNotasEstudiante" class="datos-estudiante"></div>
+
+  <div class="form-group">
+    <label for="año">Año:</label>
+    <input type="number" id="año" placeholder="Ej: 2025" />
+  </div>
+
+  <div class="form-group">
+    <label for="trimestre">Trimestre:</label>
+    <input type="number" id="trimestre" placeholder="Ej: 1" />
+  </div>
+
+  <div class="form-group">
+    <label for="grupoNotas">Grupo:</label>
+    <input type="text" id="grupoNotas" placeholder="Ej: X°A" />
+  </div>
+
+  <div class="form-group">
+    <label for="nombreAlumno">Estudiante:</label>
+    <input type="text" id="nombreAlumno" placeholder="Ej: Erick Atencio" />
+  </div>
+
+  <button onclick="buscarNotas()">Buscar Notas</button>
+
+  <div id="resultNotas">Esperando consulta...</div>
+
+  <canvas id="myChartNotas" height="400"></canvas>
+</div>
+
+<footer>Elaborado por Eliezer Mendoza — All rights reserved</footer>
+
+<script>
+  // Cambio de pestañas
+  const tabs = document.querySelectorAll('.tab-button');
+  const contents = document.querySelectorAll('.tab-content');
+
+  tabs.forEach(button => {
+    button.addEventListener('click', () => {
+      tabs.forEach(btn => btn.classList.remove('active'));
+      contents.forEach(c => c.classList.remove('active'));
+      button.classList.add('active');
+      document.getElementById(button.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ----------- ASISTENCIA -------------
+
+  let excelData = [];
+  const excelUrl = "https://raw.githubusercontent.com/eliezer319/MiApp/main/Datos.xlsx";
+
+  async function loadExcel() {
+    try {
+      const res = await fetch(excelUrl);
+      const data = new Uint8Array(await res.arrayBuffer());
+      const workbook = XLSX.read(data, { type: "array" });
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      excelData = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+      document.getElementById("result").innerHTML = "Datos cargados. Listo para buscar.";
+    } catch (e) {
+      document.getElementById("result").innerHTML = "Error cargando datos: " + e;
+    }
+  }
+
+  loadExcel();
+
+  function getMonthName(m) {
+    return ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][m];
+  }
+
+  function searchData() {
+    const year = parseInt(document.getElementById("year").value);
+    const student = document.getElementById("student").value.trim().toLowerCase();
+    const group = document.getElementById("group").value.trim().toLowerCase();
+    const start = new Date(document.getElementById("startDate").value);
+    const end = new Date(document.getElementById("endDate").value);
+    const result = document.getElementById("result");
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) {
+      alert("Selecciona fechas válidas.");
+      return;
+    }
+
+    let asist = 0, aus = 0, tar = 0, exc = 0, totalMarked = 0;
+    result.innerHTML = "";
+const datosEstDiv = document.getElementById("datosEstudiante");
+datosEstDiv.innerHTML = `
+  <h3>Información del Estudiante</h3>
+  <p><strong>Nombre:</strong> ${student.charAt(0).toUpperCase() + student.slice(1)}</p>
+  <p><strong>Grupo:</strong> ${group.toUpperCase()}</p>
+  <p><strong>Mes:</strong> ${getMonthName(start.getMonth()).toUpperCase()} a ${getMonthName(end.getMonth()).toUpperCase()}</p>
+  <p><strong>Año:</strong> ${year}</p>
+`;
+
+    for (let m = start.getMonth(); m <= end.getMonth(); m++) {
+      const monthName = getMonthName(m);
+      const row = excelData.find(r =>
+        String(r["AÑOS"]).trim() == year &&
+        String(r["MESES"]).trim().toLowerCase() == monthName &&
+        String(r["ESTUDIANTE"]).trim().toLowerCase() == student &&
+        String(r["GRUPO"]).trim().toLowerCase() == group
+      );
+      if (!row) continue;
+
+      const daysInMonth = new Date(year, m+1, 0).getDate();
+      let html = `<h3>${monthName.toUpperCase()}</h3><div class="calendar">`;
+      html += `<div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>`;
+
+      const firstDay = new Date(year, m, 1).getDay();
+      let skip = firstDay === 0 ? 6 : firstDay - 1;
+
+      for (let s = 0; s < skip; s++) html += `<div></div>`;
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(year, m, d);
+        if (date < start || date > end) {
+          html += `<div class="day"><span>${d}</span></div>`;
+          continue;
+        }
+        let v = String(row[d] || "").toLowerCase();
+        let mark = "", bg = "";
+        if (v === "verdadero" || v === "true") {
+          mark = "✔️"; bg = "green"; asist++; totalMarked++;
+        }
+        else if (v === "a") {
+          mark = "A"; bg = "red"; aus++; totalMarked++;
+        }
+        else if (v === "t") {
+          mark = "T"; bg = "orange"; tar++; totalMarked++;
+        }
+        else if (v === "e") {
+          mark = "E"; bg = "skyblue"; exc++; totalMarked++;
+        } else {
+          bg = "white"; mark = "";
+        }
+        html += `<div class="day" style="background:${bg}"><span>${d}</span>${mark}</div>`;
+      }
+
+      html += "</div>";
+      result.innerHTML += html;
+    }
+
+    let score = (asist * 1) + (exc * 1) + (tar * 0.5);
+    let percent = totalMarked ? ((score / totalMarked) * 100).toFixed(2) : 0;
+    result.innerHTML += `<h3>Resumen</h3>
+    <p><span style="color:green;">✔️ Asistencia:</span> ${asist} | 
+       <span style="color:red;">A Ausencia:</span> ${aus} | 
+       <span style="color:orange;">T Tardanza:</span> ${tar} | 
+       <span style="color:skyblue;">E Excusa:</span> ${exc}</p>
+    <p>Porcentaje de Asistencia: <strong>${percent}%</strong></p>`;
+
+    if (window.barChart) window.barChart.destroy();
+    const ctx = document.getElementById("myChart").getContext("2d");
+    window.barChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ["✔️ Asistencia", "A Ausencia", "T Tardanza", "E Excusa"],
+        datasets: [{
+          data: [asist, aus, tar, exc],
+          backgroundColor: ["green", "red", "orange", "skyblue"]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { beginAtZero: true, ticks: { font: { size: 16 } } },
+          x: { ticks: { font: { size: 16 } } }
+        }
+      }
+    });
+  }
+
+  // ----------- NOTAS -------------
+
+  let notasData = [];
+  const notasUrl = "https://raw.githubusercontent.com/eliezer319/MiApp/main/Datos1.xlsx";
+
+  async function loadNotas() {
+    try {
+      const res = await fetch(notasUrl);
+      const data = new Uint8Array(await res.arrayBuffer());
+      const workbook = XLSX.read(data, { type: "array" });
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      notasData = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+      document.getElementById("resultNotas").innerHTML = "Datos de notas cargados. Listo para buscar.";
+    } catch (e) {
+      document.getElementById("resultNotas").innerHTML = "Error cargando notas: " + e;
+    }
+  }
+
+  loadNotas();
+
+  function buscarNotas() {
+    const grupo = document.getElementById("grupoNotas").value.trim().toLowerCase();
+    const alumno = document.getElementById("nombreAlumno").value.trim().toLowerCase();
+    const result = document.getElementById("resultNotas");
+
+    if (!grupo || !alumno) {
+      alert("Por favor ingresa grupo y nombre del alumno.");
+      return;
+    }
+
+    // Filtrar las filas que coincidan con grupo y alumno
+    const filtradas = notasData.filter(r =>
+      String(r["GRUPO"]).trim().toLowerCase() === grupo &&
+      String(r["ESTUDIANTE"]).trim().toLowerCase() === alumno
+    );
+
+    if (filtradas.length === 0) {
+      result.innerHTML = "<p>No se encontraron notas para el alumno y grupo indicados.</p>";
+      return;
+    }
+// Mostrar datos del estudiante
+const infoDiv = document.getElementById("infoNotasEstudiante");
+const datos = filtradas[0];  // tomamos la primera fila porque todas deben ser del mismo alumno
+
+infoDiv.innerHTML = `
+  <h3>Información del Estudiante</h3>
+  <p><strong>Nombre:</strong> ${datos["ESTUDIANTE"]}</p>
+  <p><strong>Grupo:</strong> ${datos["GRUPO"]}</p>
+  <p><strong>Trimestre:</strong> ${datos["TRIMESTRE"]}</p>
+  <p><strong>Año:</strong> ${datos["AÑOS"]}</p>
+`;
+
+    // Armar tabla con resultados
+  // Limpieza inicial
+let html = '';
+
+// Función para redondear números
+const redondear = v => (isNaN(parseFloat(v)) ? v : parseFloat(v).toFixed(1));
+
+// Función para construir una tabla por sección
+const construirTabla = (titulo, claves) => {
+  let tabla = `<div class="seccion"><h2>${titulo}</h2><table><thead><tr><th>${titulo}</th>`;
+  filtradas.forEach(row => {
+    tabla += `<th>${row["ESTUDIANTE"]}</th>`;
+  });
+  tabla += `</tr></thead><tbody>`;
+  
+  claves.forEach(k => {
+    tabla += `<tr><td>${k}</td>`;
+    filtradas.forEach(row => {
+      tabla += `<td>${redondear(row[k])}</td>`;
+    });
+    tabla += `</tr>`;
+  });
+
+  tabla += `</tbody></table></div>`;
+  return tabla;
+};
+
+// Clasificar columnas
+const keys = Object.keys(filtradas[0]).filter(k => k !== "GRUPO" && k !== "ESTUDIANTE");
+const parciales = keys.filter(k => k.startsWith("TEST#") || k === "TEST FINAL");
+const apreciacion = keys.filter(k => k.startsWith("APRECIACION"));
+const final = keys.filter(k => k === "EXAMEN" || k === "BOLETIN");
+
+// Agregar secciones con tablas separadas
+html += construirTabla("Notas Parciales", parciales);
+html += construirTabla("Notas de Apreciación", apreciacion);
+html += construirTabla("Evaluación Final", final);
+
+result.innerHTML = html;
+
+
+
+    // Opcional: gráfico con promedio (si tienes datos numéricos en alguna columna)
+    // Aquí un ejemplo simple contando valores numéricos en la primera columna de notas
+    // Se puede mejorar según estructura real
+  }
+
+</script>
+
+</body>
+</html>
