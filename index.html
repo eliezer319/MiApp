@@ -2,289 +2,349 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Centro Educativo - Asistencia y Notas</title>
+  <title>🎓 Centro Educativo - App de Asistencia y Notas</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,400;0,700;1,600&display=swap" rel="stylesheet">
   <style>
+    /* --- Estilos generales --- */
+    * { box-sizing: border-box; }
     body {
-      font-family: Arial, sans-serif;
-      background: #d9f0ff;
-      padding: 20px;
-      color: #333;
-      font-weight: 600;
-      font-size: 1.1rem;
+      font-family: 'Rubik', sans-serif;
+      margin: 0;
+      background: linear-gradient(to right, #e3f2fd, #bbdefb);
+      color: #1a237e;
+      min-height: 100vh;
+    }
+    header {
+      background-color: #283593;
+      padding: 25px 20px;
+      border-radius: 15px;
+      color: #e8eaf6;
+      font-weight: 700;
+      box-shadow: 0 6px 15px rgba(40, 53, 147, 0.4);
+      margin: 25px 30px;
       text-align: center;
-.datos-estudiante {
-  background-color: #e6f7ff;
-  border: 2px solid #3a8dde;
-  padding: 15px 25px;
-  margin: 20px auto;
-  border-radius: 10px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #003366;
-  max-width: 600px;
-  text-align: left;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-.datos-estudiante h3 {
-  margin-top: 0;
-  color: #0066cc;
-}
-
+      font-style: italic;
+      letter-spacing: 1px;
     }
-   header {
-  background-color: #00264d; /* Azul marino oscuro */
-  padding: 20px;
-  border-radius: 10px;
-  color: #ffeb3b; /* Amarillo claro */
-  font-weight: 700;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  margin-bottom: 20px;
-}
-
     header img {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      vertical-align: middle;
-      margin-right: 15px;
+      width: 120px;
+      height: 120px;
+      border-radius: 20px;
+      object-fit: cover;
+      margin-bottom: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
     }
-    .tabs {
+    nav {
+      background: #3949ab;
+      padding: 15px 30px;
       display: flex;
       justify-content: center;
-      margin-bottom: 20px;
-      gap: 20px;
+      gap: 40px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(57, 73, 171, 0.5);
+      margin: 0 30px 30px;
     }
-    .tab-button {
-      background: #0066cc;
-      color: white;
+    nav button {
+      background: #5c6bc0;
       border: none;
-      padding: 12px 30px;
-      font-size: 1rem;
-      font-weight: 700;
+      color: #e8eaf6;
+      font-size: 1.3rem;
       cursor: pointer;
-      border-radius: 5px;
-      transition: background 0.3s;
+      padding: 15px 30px;
+      font-weight: 800;
+      border-radius: 30px;
+      transition: all 0.35s ease;
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      user-select: none;
     }
-    .tab-button:hover {
-      background: #004d99;
+    nav button svg {
+      width: 24px;
+      height: 24px;
+      fill: #e8eaf6;
     }
-    .tab-button.active {
-      background: #003366;
+    nav button:hover {
+      background: #7986cb;
+      color: #283593;
+      box-shadow: 0 6px 20px rgba(121, 134, 203, 0.8);
+      transform: translateY(-3px);
+    }
+    nav button.active {
+      background: #1a237e;
+      color: #f9fbe7;
+      box-shadow: 0 8px 25px rgba(26, 35, 126, 0.8);
+      transform: translateY(-4px);
+    }
+    .observacion-marquee {
+      width: 100%;
+      overflow: hidden;
+      background-color: #e8eaf6;
+      color: #1a237e;
+      font-weight: 700;
+      padding: 15px 0;
+      font-size: 1.25rem;
+      font-family: 'Rubik', sans-serif;
+      font-style: italic;
+      box-sizing: border-box;
+      position: relative;
+      margin: 15px 0 35px;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    .observacion-marquee span {
+      display: inline-block;
+      white-space: nowrap;
+      padding-left: 100%;
+      animation: scroll-text 25s linear infinite;
+    }
+    @keyframes scroll-text {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-100%); }
     }
     .tab-content {
       display: none;
-      max-width: 900px;
-      margin: 0 auto;
-      text-align: left;
-    }
-    .tab-content.active {
-      display: block;
-    }
-    input, button, select {
-      padding: 10px;
-      margin: 5px 0;
-      font-size: 1rem;
+      animation: fade 0.5s ease-in-out;
+      padding: 40px 25px;
       width: 100%;
-      max-width: 400px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+      max-width: 1050px;
+      margin: 0 auto 40px;
+      background: #f5f7ff;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(57, 73, 171, 0.25);
+      color: #283593;
       font-weight: 600;
+      font-style: normal;
     }
-    button {
-      background: #0066cc;
-      color: #fff;
-      border: none;
-      cursor: pointer;
+    .tab-content.active { display: block; }
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    button:hover {
-      background: #004d99;
-    }
-    .calendar {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
-      margin: 10px 0 30px;
-      background: #fff;
-      border-radius: 10px;
-      padding: 10px;
-    }
-    .day {
-      border: 1px solid #ddd;
-      padding: 5px;
-      min-height: 60px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: center;
-      font-weight: bold;
-    }
-    .leyenda {
-      margin: 20px auto;
-      background: #fff;
-      border-radius: 10px;
-      padding: 10px;
-      max-width: 700px;
-      font-weight: 700;
-      font-size: 1.1rem;
+    h1, h2, h3 {
+      color: #1a237e;
+      margin-bottom: 30px;
       text-align: center;
+      font-weight: 900;
+      font-style: italic;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+    }
+    .form-group {
+      margin-bottom: 25px;
+      max-width: 450px;
+      width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    label {
+      font-weight: 800;
+      margin-bottom: 10px;
+      display: inline-block;
+      font-size: 1.1rem;
+      color: #3949ab;
+      letter-spacing: 0.03em;
+    }
+    input[type="text"], input[type="number"], input[type="date"] {
+      width: 100%;
+      padding: 14px 20px;
+      border-radius: 25px;
+      border: 2.5px solid #3949ab;
+      font-size: 1.15rem;
+      font-weight: 700;
+      font-style: italic;
+      transition: border-color 0.3s ease;
+      color: #283593;
+      outline-offset: 2px;
+      box-shadow: inset 0 2px 6px rgba(57,73,171,0.1);
+      user-select: text;
+    }
+    input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus {
+      border-color: #1a237e;
+      box-shadow: 0 0 8px #1a237e;
+      background: #e8eaf6;
+    }
+    button.buscar, button {
+      background: linear-gradient(45deg, #3949ab, #1a237e);
+      color: #f0f0f5;
+      font-weight: 900;
+      font-size: 1.4rem;
+      border: none;
+      padding: 18px 40px;
+      border-radius: 40px;
+      cursor: pointer;
+      margin: 30px auto 0;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 8px 20px rgba(26, 35, 126, 0.7);
+      transition: all 0.4s ease;
+      user-select: none;
+      font-style: italic;
+    }
+    button.buscar:hover, button:hover {
+      background: linear-gradient(45deg, #283593, #3949ab);
+      color: #bbdefb;
+      box-shadow: 0 12px 28px rgba(57, 73, 171, 0.9);
+      transform: translateY(-3px);
+    }
+    button svg {
+      width: 26px;
+      height: 26px;
+      fill: #f0f0f5;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+    }
+    .datos-estudiante, .leyenda, .calendar, table {
+      background: #e3f2fd;
+      color: #283593;
+      padding: 20px 25px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      box-shadow: 0 6px 18px rgba(57, 73, 171, 0.15);
+      font-weight: 700;
+      font-style: italic;
+      user-select: none;
     }
     .leyenda span {
+      margin: 7px 12px 7px 0;
+      padding: 7px 16px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-style: normal;
       display: inline-block;
-      margin: 5px 10px;
-      padding: 5px 10px;
-      border-radius: 4px;
       color: #fff;
-      font-weight: 600;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      user-select: none;
     }
-    .A { background: red; }
-    .T { background: orange; }
-    .E { background: skyblue; }
-    .V { background: green; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 10px 0 30px;
+    .A { background: #e53935; } /* rojo intenso */
+    .T { background: #fb8c00; } /* naranja cálido */
+    .E { background: #4fc3f7; } /* celeste brillante */
+    .V { background: #43a047; } /* verde vivo */
+    table { 
+      width: 100%; 
+      border-collapse: separate; 
+      border-spacing: 0 10px; 
+      font-weight: 700; 
+      font-style: italic;
     }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px 12px;
-      text-align: center;
-      font-weight: 600;
+    th, td { 
+      padding: 15px 12px; 
+      border: none; 
+      text-align: center; 
+      background: #bbdefb;
+      color: #1a237e;
+      border-radius: 12px;
+      box-shadow: inset 0 2px 6px rgba(26,35,126,0.15);
+      user-select: text;
+      font-size: 1.1rem;
     }
-    th {
-      background-color: #3a8dde;
-      color: white;
+    th { 
+      background-color: #3949ab; 
+      color: #e8eaf6; 
+      font-weight: 900;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.3);
     }
     footer {
-      margin-top: 40px;
-      color: #000;
-      font-weight: bold;
+      text-align: center;
+      padding: 25px 20px;
+      font-size: 1rem;
+      color: #3949ab;
+      margin-top: 50px;
+      font-weight: 600;
+      font-style: italic;
+      user-select: none;
+      letter-spacing: 0.05em;
+      text-shadow: 0 0 3px rgba(57, 73, 171, 0.3);
+    }
+    canvas { 
+      background: #e3f2fd; 
+      border-radius: 15px; 
+      margin-top: 25px;
+      box-shadow: 0 6px 18px rgba(57, 73, 171, 0.2);
+      user-select: none;
+    }
+
+    /* Escalas de la rúbrica */
+    .scale-excelente {
+      background-color: #2ecc71;
+      color: white;
+    }
+    .scale-bueno {
+      background-color: #3498db;
+      color: white;
+    }
+    .scale-regular {
+      background-color: #e67e22;
+      color: white;
+    }
+    .scale-deficiente {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    /* Estilos para no-result y descargar PDF */
+    .no-result {
+      color: red;
+      text-align: center;
+      margin-top: 20px;
+    }
+    #downloadPDF {
+      display: none;
+      margin: 15px auto 40px;
+      max-width: 300px;
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      padding: 15px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 700;
+      font-style: italic;
+      box-shadow: 0 6px 15px rgba(39, 174, 96, 0.6);
+      transition: background-color 0.3s ease;
+      user-select: none;
+      display: block;
       text-align: center;
     }
-    #myChart, #myChartNotas {
-      max-width: 800px;
-      margin: 20px auto 40px;
+    #downloadPDF:hover {
+      background-color: #1e8449;
     }
   </style>
 </head>
 <body>
 
 <header>
-  <img 
-    src="https://raw.githubusercontent.com/eliezer319/MiApp/main/sharpened_image.jpg" 
-    alt="Logo del Centro Educativo" 
-    style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; margin-right: 20px;" 
-  />
-  <span>
-    <h1 style="display:inline-block; margin:0;">CENTRO EDUCATIVO BOCA DE REMEDIO</h1><br />
-    <p style="margin:0;">COMARCA NGÄBE BUGLÉ</p>
-    <p style="margin:0;">BACHILLER EN CIENCIAS</p>
-    <p style="margin:0;">MATERIA: INGLÉS</p>
-    <p style="margin:0;">PROFESOR: ELIEZER MENDOZA</p>
-  </span>
+  <img src="https://raw.githubusercontent.com/eliezer319/MiApp/main/sharpened_image.jpg" alt="Logo del Centro Educativo" />
+  <h1>CENTRO EDUCATIVO BOCA DE REMEDIO</h1>
+  <p>COMARCA NGÄBE BUGLÉ</p>
+  <p>BACHILLER EN CIENCIAS</p>
+  <p>MATERIA: INGLÉS</p>
+  <p>PROFESOR: ELIEZER MENDOZA</p>
 </header>
 
 <div class="observacion-marquee">
-  <span>BIENVENIDOS ESTIMADOS ESTUDIANTES DEL C.E BOCA DE REMEDIOS , ESTE ES UN ESPACIO DISEÑADO PARA QUE PUEDAN CONSULTAR DE FORMA RAPIDA Y SEGURA SUS ASISTENCIAS Y RENDIMIENTO ACADEMICO.</span>
+  <span>BIENVENIDOS ESTIMADOS ESTUDIANTES DEL C.E BOCA DE REMEDIO, ESTE ES UN ESPACIO DISEÑADO PARA QUE PUEDAN CONSULTAR DE FORMA RÁPIDA Y SEGURA SUS ASISTENCIAS Y RENDIMIENTO ACADÉMICO.</span>
 </div>
 
-<style>
-.observacion-marquee {
-  width: 100%;
-  overflow: hidden;
-  background-color: #f0f8ff;
-  color: #003366;
-  font-weight: 700;
-  padding: 12px 0;
-  font-size: 1.1rem;
-  font-family: Arial, sans-serif;
-  box-sizing: border-box;
-  position: relative;
-}
+<nav>
+  <button class="tab-btn active" data-tab="notas" aria-label="Notas">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6v12h18V6H3zm16 10H5V8h14v8zM7 10h10v2H7v-2z"/></svg>📚 Notas
+  </button>
+  <button class="tab-btn" data-tab="asistencia" aria-label="Asistencia">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14l4-4h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7 11h6v2H7v-2z"/></svg>📋 Asistencia
+  </button>
+  <button class="tab-btn" data-tab="rubrica" aria-label="Rúbrica">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 21H7v-2H3V7h4V5h2v2h4v2H9v12zM21 3h-8v4h8V3z"/></svg>📝 Rúbrica
+  </button>
+</nav>
 
-.observacion-marquee span {
-  display: inline-block;
-  white-space: nowrap;
-  padding-left: 100%;
-  animation: scroll-text 20s linear infinite;
-}
-
-@keyframes scroll-text {
-  0% {
-    transform: translateX(0%);
-  }
-  100% {
-    transform: translateX(-100%);
-  }
-}
-</style>
-
-
-
-
-
-
-<div class="tabs">
-  <button class="tab-button active" data-tab="asistencia">CONSULTA DE ASISTENCIA</button>
-  <button class="tab-button" data-tab="notas">CONSULTA DE NOTAS</button>
-</div>
-
-
-
-<!-- TAB ASISTENCIA -->
-<div id="asistencia" class="tab-content active">
-  <h2>Consulta de Asistencia</h2>
-<div id="datosEstudiante" class="datos-estudiante"></div>
-  <div class="form-group">
-    <label for="year">Año:</label>
-    <input type="number" id="year" value="2025" placeholder="Ej: Año escolar (2025)">
-  </div>
-
-  <div class="form-group">
-    <label for="startDate">Fecha inicio:</label>
-    <input type="date" id="startDate" placeholder="Ej: Fecha de inicio">
-  </div>
-
-  <div class="form-group">
-    <label for="endDate">Fecha fin:</label>
-    <input type="date" id="endDate" placeholder="Ej: Fecha de fin">
-  </div>
-
-  <div class="form-group">
-    <label for="student">Estudiante:</label>
-    <input type="text" id="student" placeholder="Ej: Erick Atencio">
-  </div>
-
-  <div class="form-group">
-    <label for="group">Grupo:</label>
-    <input type="text" id="group" placeholder="Ej: X°A">
-  </div>
-
-  <button onclick="searchData()">Buscar</button>
-  <div class="leyenda">
-    <strong>Leyenda:</strong>
-    <span class="V">✔️ Asistencia</span>
-    <span class="A">A Ausencia</span>
-    <span class="T">T Tardanza</span>
-    <span class="E">E Excusa</span>
-    <span style="background: #fff; border: 1px solid #ccc; color: #333;">Blanco: Sin clases</span>
-  </div>
-
-  <div id="result">Esperando datos...</div>
-
-  <canvas id="myChart" height="400"></canvas>
-</div>
-
- 
-
-
-<!-- TAB NOTAS -->
-<div id="notas" class="tab-content">
-  <h2>Consulta de Notas</h2>
-
-<div id="infoNotasEstudiante" class="datos-estudiante"></div>
+<!-- SECCIÓN NOTAS -->
+<div id="notas" class="tab-content active">
+  <h2>📚 Consulta de Notas</h2>
 
   <div class="form-group">
     <label for="año">Año:</label>
@@ -306,31 +366,316 @@
     <input type="text" id="nombreAlumno" placeholder="Ej: Erick Atencio" />
   </div>
 
-  <button onclick="buscarNotas()">Buscar Notas</button>
+  <button class="buscar" onclick="buscarNotas()">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 20l-5.586-5.586A7.953 7.953 0 0 0 16 10a8 8 0 1 0-8 8 7.953 7.953 0 0 0 4.414-1.586L20 21l1-1zM10 16a6 6 0 1 1 6-6 6 6 0 0 1-6 6z"/></svg>
+    Buscar Notas
+  </button>
 
-  <div id="resultNotas">Esperando consulta...</div>
-
-  <canvas id="myChartNotas" height="400"></canvas>
+  <div id="infoNotasEstudiante" class="datos-estudiante"></div>
+  <div id="resultNotas"></div>
 </div>
 
-<footer>Elaborado por Eliezer Mendoza — All rights reserved</footer>
+<!-- SECCIÓN ASISTENCIA -->
+<div id="asistencia" class="tab-content">
+  <h2>📋 Consulta de Asistencia</h2>
+
+  <div class="form-group">
+    <label for="year">Año:</label>
+    <input type="number" id="year" value="2025" />
+  </div>
+
+  <div class="form-group">
+    <label for="startDate">Fecha inicio:</label>
+    <input type="date" id="startDate" />
+  </div>
+
+  <div class="form-group">
+    <label for="endDate">Fecha fin:</label>
+    <input type="date" id="endDate" />
+  </div>
+
+  <div class="form-group">
+    <label for="student">Estudiante:</label>
+    <input type="text" id="student" placeholder="Ej: Erick Atencio" />
+  </div>
+
+  <div class="form-group">
+    <label for="group">Grupo:</label>
+    <input type="text" id="group" placeholder="Ej: X°A" />
+  </div>
+
+  <button onclick="searchData()">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 20l-5.586-5.586A7.953 7.953 0 0 0 16 10a8 8 0 1 0-8 8 7.953 7.953 0 0 0 4.414-1.586L20 21l1-1zM10 16a6 6 0 1 1 6-6 6 6 0 0 1-6 6z"/></svg>
+    Buscar
+  </button>
+
+  <div class="leyenda">
+    <strong>Leyenda:</strong>
+    <span class="V">✔️ Asistencia</span>
+    <span class="A">A Ausencia</span>
+    <span class="T">T Tardanza</span>
+    <span class="E">E Excusa</span>
+    <span style="background: #fff; color: #333;">Blanco: Sin clases</span>
+  </div>
+
+  <div id="datosEstudiante" class="datos-estudiante"></div>
+  <div id="result"></div>
+  <canvas id="myChart" height="400"></canvas>
+</div>
+
+<!-- SECCIÓN RÚBRICA -->
+<div id="rubrica" class="tab-content">
+  <h1>📘 Rúbrica de Evaluación</h1>
+
+  <div class="search-box" style="max-width:450px; margin: 0 auto 25px;">
+    <label for="studentName">Nombre del Estudiante:</label>
+    <input type="text" id="studentName" placeholder="Ej: Erick Atencio" style="width:100%; padding:12px; font-weight:700; font-style:italic; border-radius:15px; border: 2px solid #3949ab; margin-bottom: 18px;" />
+
+    <label for="activityNumber">Número de Actividad:</label>
+    <input type="number" id="activityNumber" placeholder="Ej: 1" style="width:100%; padding:12px; font-weight:700; font-style:italic; border-radius:15px; border: 2px solid #3949ab; margin-bottom: 18px;" />
+
+    <button onclick="searchRubrica()" style="width:100%; font-weight: 900; font-style: italic; font-size: 1.3rem; background: #3949ab; color: #f0f0f5; padding: 14px 0; border-radius: 25px; cursor: pointer; box-shadow: 0 8px 20px rgba(57, 73, 171, 0.7); transition: background-color 0.3s ease; user-select:none;">Buscar Rúbrica</button>
+  </div>
+
+  <button id="downloadPDF">📥 Descargar Rúbrica en PDF</button>
+
+  <div id="rubricaContainer" class="card" style="max-width: 1050px; margin: 20px auto; display:none; background:#e3f2fd; border-radius:20px; padding: 30px; box-shadow: 0 8px 25px rgba(57, 73, 171, 0.25); color: #1a237e;"></div>
+  <div class="no-result" id="noResult" style="max-width: 450px; margin: 25px auto; display:none; font-weight: 700;"></div>
+</div>
+
+<footer>© 2025 Elaborado por Eliezer Mendoza — Todos los derechos reservados</footer>
 
 <script>
-  // Cambio de pestañas
-  const tabs = document.querySelectorAll('.tab-button');
+  // Pestañas
+  const tabs = document.querySelectorAll('.tab-btn');
   const contents = document.querySelectorAll('.tab-content');
-
-  tabs.forEach(button => {
-    button.addEventListener('click', () => {
-      tabs.forEach(btn => btn.classList.remove('active'));
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabs.forEach(b => b.classList.remove('active'));
       contents.forEach(c => c.classList.remove('active'));
-      button.classList.add('active');
-      document.getElementById(button.dataset.tab).classList.add('active');
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
     });
   });
 
-  // ----------- ASISTENCIA -------------
+  // Cargar archivo rúbrica desde GitHub
+  let excelRubricaData = [];
+  fetch('https://raw.githubusercontent.com/eliezer319/MiApp/main/Datos2.xlsx')
+    .then(res => res.arrayBuffer())
+    .then(data => {
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      excelRubricaData = XLSX.utils.sheet_to_json(sheet, { raw: false });
+      alert("✅ Archivo de rúbrica cargado desde GitHub correctamente.");
+    });
 
+  function formatExactDate(dateString) {
+    const date = new Date(dateString);
+    if (isNaN(date)) return dateString;
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${mm}/${dd}/${yyyy}`;
+  }
+
+  function searchRubrica() {
+    const name = document.getElementById('studentName').value.trim().toLowerCase();
+    const activity = document.getElementById('activityNumber').value.trim();
+    const rubricaContainer = document.getElementById('rubricaContainer');
+    const noResult = document.getElementById('noResult');
+    const downloadPDFBtn = document.getElementById('downloadPDF');
+
+    rubricaContainer.style.display = 'none';
+    noResult.style.display = 'none';
+    rubricaContainer.innerHTML = '';
+    downloadPDFBtn.style.display = 'none';
+
+    if (!name || !activity) {
+      alert("⚠️ Completa ambos campos.");
+      return;
+    }
+
+    const resultados = excelRubricaData.filter(
+      row => row['ESTUDIANTE']?.toLowerCase().includes(name) && String(row['N°']) === activity
+    );
+
+    if (resultados.length === 0) {
+      noResult.style.display = 'block';
+      noResult.textContent = '❌ No se encontraron criterios para ese estudiante y actividad.';
+      return;
+    }
+
+    const criterios = resultados.filter(r => r['CRITERIO']);
+    const observacionFila = resultados.find(r => !r['CRITERIO']);
+
+    const estudiante = criterios[0]?.ESTUDIANTE || '';
+    const actividad = criterios[0]?.ACTIVIDAD || '';
+    const numero = criterios[0]?.['N°'] || '';
+    const grupo = criterios[0]?.GRUPO || '';
+    let fecha = criterios[0]?.FECHA || '';
+    fecha = formatExactDate(fecha);
+    const nota = criterios[0]?.['NOTA FINAL'] || '';
+    const puntajeObtenido = Number(observacionFila?.['PUNTAJE OBTENIDO']) || 0;
+    const puntajeTotal = Number(observacionFila?.['PUNTAJE TOTAL']) || 0;
+    const observacion = observacionFila?.GRUPO || '';
+
+    let html = `
+      <div class="info" style="margin-bottom:20px;">
+        <p><strong>👤 Estudiante:</strong> ${estudiante}</p>
+        <p><strong>🏫 Grupo:</strong> ${grupo}</p>
+        <p><strong>🧪 Actividad:</strong> ${actividad}</p>
+        <p><strong>🔢 N° Actividad:</strong> ${numero}</p>
+        <p><strong>📅 Fecha:</strong> ${fecha}</p>
+        <p><strong>📊 Nota Final:</strong> ${nota}</p>
+        <p><strong>🧮 Puntaje Total Obtenido:</strong> ${puntajeObtenido} / ${puntajeTotal}</p>
+      </div>
+
+      <div class="observacion" style="margin-bottom: 25px; font-style: italic; font-weight: 600; font-size: 1.1rem; color: #283593;">
+        📝 <strong>Observación:</strong> ${observacion}
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Criterio</th>
+            <th>Excelente</th>
+            <th>Bueno</th>
+            <th>Regular</th>
+            <th>Deficiente</th>
+            <th>Puntaje Obtenido</th>
+            <th>Puntaje Total</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    criterios.forEach(row => {
+      const pObtenido = Number(row['PUNTAJE OBTENIDO']) || 0;
+      html += `
+        <tr>
+          <td style="text-align:left;">${row['CRITERIO']}</td>
+          <td class="${pObtenido === 5 ? 'scale-excelente' : ''}">${row['EXCELENTE'] || ''}</td>
+          <td class="${pObtenido >= 3 && pObtenido < 5 ? 'scale-bueno' : ''}">${row['BUENO'] || ''}</td>
+          <td class="${pObtenido >= 1.1 && pObtenido <= 2.9 ? 'scale-regular' : ''}">${row['REGULAR'] || ''}</td>
+          <td class="${pObtenido <= 1.0 ? 'scale-deficiente' : ''}">${row['DEFICIENTE'] || ''}</td>
+          <td>${row['PUNTAJE OBTENIDO'] || ''}</td>
+          <td>${row['PUNTAJE TOTAL'] || ''}</td>
+        </tr>
+      `;
+    });
+
+    html += `</tbody></table>`;
+    rubricaContainer.innerHTML = html;
+    rubricaContainer.style.display = 'block';
+    downloadPDFBtn.style.display = 'block';
+  }
+
+  document.getElementById('downloadPDF').addEventListener('click', function () {
+    const element = document.getElementById('rubricaContainer');
+    const opt = {
+      margin: [0.2, 0.2, 0.2, 0.2],
+      filename: 'rubrica_evaluacion.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, scrollY: 0 },
+      jsPDF: { unit: 'in', format: [8.5, 11], orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all'] }
+    };
+    html2pdf().set(opt).from(element).save();
+  });
+
+  // Notas
+  let notasData = [];
+  async function cargarNotasDesdeGithub() {
+    const url = "https://raw.githubusercontent.com/eliezer319/MiApp/main/Datos1.xlsx";
+    try {
+      const response = await fetch(url);
+      const data = new Uint8Array(await response.arrayBuffer());
+      const workbook = XLSX.read(data, { type: "array" });
+      const hoja = workbook.Sheets[workbook.SheetNames[0]];
+      notasData = XLSX.utils.sheet_to_json(hoja, { defval: "" });
+    } catch (error) {
+      document.getElementById("resultNotas").innerHTML = "❌ Error al cargar el archivo";
+    }
+  }
+  window.addEventListener("DOMContentLoaded", cargarNotasDesdeGithub);
+
+  function excelDateToJSDate(serial) {
+    if (typeof serial !== "number") return serial;
+    const utc_days = Math.floor(serial - 25569);
+    const utc_value = utc_days * 86400;
+    const date_info = new Date(utc_value * 1000);
+    const day = ("0" + date_info.getUTCDate()).slice(-2);
+    const month = ("0" + (date_info.getUTCMonth() + 1)).slice(-2);
+    const year = date_info.getUTCFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  function buscarNotas() {
+    const grupo = document.getElementById("grupoNotas").value.trim().toLowerCase();
+    const alumno = document.getElementById("nombreAlumno").value.trim().toLowerCase();
+    const result = document.getElementById("resultNotas");
+
+    const filtradas = notasData.filter(r =>
+      String(r["GRUPO"]).trim().toLowerCase() === grupo &&
+      String(r["ESTUDIANTE"]).trim().toLowerCase() === alumno
+    );
+    if (filtradas.length === 0) {
+      result.innerHTML = "<p>❌ No se encontraron notas para el alumno y grupo indicados.</p>";
+      return;
+    }
+    const datos = filtradas[0];
+    document.getElementById("infoNotasEstudiante").innerHTML = `
+      <h3>Información del Estudiante</h3>
+      <p><strong>Nombre:</strong> ${datos["ESTUDIANTE"]}</p>
+      <p><strong>Grupo:</strong> ${datos["GRUPO"]}</p>
+      <p><strong>Trimestre:</strong> ${datos["TRIMESTRE"]}</p>
+      <p><strong>Año:</strong> ${document.getElementById("año").value || datos["AÑOS"] || "-"}</p>
+    `;
+
+    const redondear = v => (isNaN(parseFloat(v)) ? v : parseFloat(v).toFixed(1));
+
+    function construirSeccionNotas(titulo, prefijo) {
+      let indices = [];
+      for (let key of Object.keys(datos)) {
+        const match = key.match(new RegExp(`^${prefijo}#(\\d+)$`, "i"));
+        if (match) indices.push(parseInt(match[1]));
+      }
+      indices = indices.sort((a, b) => a - b);
+      if (indices.length === 0) return "";
+
+      let tabla = `<div class="datos-estudiante"><h3>${titulo}</h3><table><thead><tr><th>${prefijo}#</th><th>Nota</th><th>Fecha</th><th>Actividad</th></tr></thead><tbody>`;
+      indices.forEach(i => {
+        tabla += `<tr>
+          <td>${prefijo}#${i}</td>
+          <td>${redondear(datos[`${prefijo}#${i}`]) || "-"}</td>
+          <td>${datos[`FECHA_${prefijo}#${i}`] ? excelDateToJSDate(datos[`FECHA_${prefijo}#${i}`]) : "-"}</td>
+          <td>${datos[`ACTIVIDAD_${prefijo}#${i}`] || "-"}</td>
+        </tr>`;
+      });
+      tabla += `</tbody></table></div>`;
+      return tabla;
+    }
+
+    let html = "";
+    html += construirSeccionNotas("📘 Notas Parciales", "PARCIAL");
+    html += construirSeccionNotas("💬 Notas de Apreciación", "APRECIACION");
+
+    const finalKeys = Object.keys(datos).filter(k =>
+      k.toUpperCase().includes("EXAMEN") || k.toUpperCase().includes("PROMEDIO") || k.toUpperCase().includes("FINAL")
+    );
+
+    if (finalKeys.length > 0) {
+      html += `<div class="datos-estudiante"><h3>📊 Evaluación Final</h3><table><tbody>`;
+      finalKeys.forEach(k => {
+        html += `<tr><td>${k}</td><td>${redondear(datos[k]) || "-"}</td></tr>`;
+      });
+      html += `</tbody></table></div>`;
+    }
+
+    result.innerHTML = html;
+  }
+
+  // Asistencia
   let excelData = [];
   const excelUrl = "https://raw.githubusercontent.com/eliezer319/MiApp/main/Datos.xlsx";
 
@@ -341,7 +686,6 @@
       const workbook = XLSX.read(data, { type: "array" });
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
       excelData = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
-      document.getElementById("result").innerHTML = "Datos cargados. Listo para buscar.";
     } catch (e) {
       document.getElementById("result").innerHTML = "Error cargando datos: " + e;
     }
@@ -354,27 +698,31 @@
   }
 
   function searchData() {
+    
     const year = parseInt(document.getElementById("year").value);
     const student = document.getElementById("student").value.trim().toLowerCase();
     const group = document.getElementById("group").value.trim().toLowerCase();
     const start = new Date(document.getElementById("startDate").value);
     const end = new Date(document.getElementById("endDate").value);
     const result = document.getElementById("result");
+    const datosEstDiv = document.getElementById("datosEstudiante");
+    
+
     if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) {
       alert("Selecciona fechas válidas.");
       return;
     }
 
+    datosEstDiv.innerHTML = `
+      <h3>Información del Estudiante</h3>
+      <p><strong>Nombre:</strong> ${student.charAt(0).toUpperCase() + student.slice(1)}</p>
+      <p><strong>Grupo:</strong> ${group.toUpperCase()}</p>
+      <p><strong>Mes:</strong> ${getMonthName(start.getMonth()).toUpperCase()} a ${getMonthName(end.getMonth()).toUpperCase()}</p>
+      <p><strong>Año:</strong> ${year}</p>
+    `;
+
     let asist = 0, aus = 0, tar = 0, exc = 0, totalMarked = 0;
     result.innerHTML = "";
-const datosEstDiv = document.getElementById("datosEstudiante");
-datosEstDiv.innerHTML = `
-  <h3>Información del Estudiante</h3>
-  <p><strong>Nombre:</strong> ${student.charAt(0).toUpperCase() + student.slice(1)}</p>
-  <p><strong>Grupo:</strong> ${group.toUpperCase()}</p>
-  <p><strong>Mes:</strong> ${getMonthName(start.getMonth()).toUpperCase()} a ${getMonthName(end.getMonth()).toUpperCase()}</p>
-  <p><strong>Año:</strong> ${year}</p>
-`;
 
     for (let m = start.getMonth(); m <= end.getMonth(); m++) {
       const monthName = getMonthName(m);
@@ -386,51 +734,38 @@ datosEstDiv.innerHTML = `
       );
       if (!row) continue;
 
-      const daysInMonth = new Date(year, m+1, 0).getDate();
-      let html = `<h3>${monthName.toUpperCase()}</h3><div class="calendar">`;
+      const daysInMonth = new Date(year, m + 1, 0).getDate();
+      let html = `<h3>${monthName.toUpperCase()}</h3><div class="calendar" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;">`;
       html += `<div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>`;
 
       const firstDay = new Date(year, m, 1).getDay();
-      let skip = firstDay === 0 ? 6 : firstDay - 1;
+      let skip = firstDay === 0 ? 6 : firstDay - 1; // domingo=6, lunes=0, etc.
 
-      for (let s = 0; s < skip; s++) html += `<div></div>`;
-
-      for (let d = 1; d <= daysInMonth; d++) {
-        const date = new Date(year, m, d);
-        if (date < start || date > end) {
-          html += `<div class="day"><span>${d}</span></div>`;
-          continue;
-        }
-        let v = String(row[d] || "").toLowerCase();
-        let mark = "", bg = "";
-        if (v === "verdadero" || v === "true") {
-          mark = "✔️"; bg = "green"; asist++; totalMarked++;
-        }
-        else if (v === "a") {
-          mark = "A"; bg = "red"; aus++; totalMarked++;
-        }
-        else if (v === "t") {
-          mark = "T"; bg = "orange"; tar++; totalMarked++;
-        }
-        else if (v === "e") {
-          mark = "E"; bg = "skyblue"; exc++; totalMarked++;
-        } else {
-          bg = "white"; mark = "";
-        }
-        html += `<div class="day" style="background:${bg}"><span>${d}</span>${mark}</div>`;
+      for (let s = 0; s < skip; s++) {
+        html += `<div></div>`;
       }
 
-      html += "</div>";
+      for (let d = 1; d <= daysInMonth; d++) {
+        const v = String(row[d] || "").toLowerCase();
+        let mark = "", bg = "white";
+        if (v === "verdadero" || v === "true") { mark = "✔️"; bg = "#43a047"; asist++; totalMarked++; }
+        else if (v === "a") { mark = "A"; bg = "#e53935"; aus++; totalMarked++; }
+        else if (v === "t") { mark = "T"; bg = "#fb8c00"; tar++; totalMarked++; }
+        else if (v === "e") { mark = "E"; bg = "#4fc3f7"; exc++; totalMarked++; }
+        html += `<div style="background:${bg};padding:10px;border-radius:10px;color:#fff;font-weight:bold;font-style:italic;user-select:none;">${d}<br>${mark}</div>`;
+      }
+      html += `</div>`;
       result.innerHTML += html;
     }
 
     let score = (asist * 1) + (exc * 1) + (tar * 0.5);
     let percent = totalMarked ? ((score / totalMarked) * 100).toFixed(2) : 0;
+
     result.innerHTML += `<h3>Resumen</h3>
-    <p><span style="color:green;">✔️ Asistencia:</span> ${asist} | 
-       <span style="color:red;">A Ausencia:</span> ${aus} | 
-       <span style="color:orange;">T Tardanza:</span> ${tar} | 
-       <span style="color:skyblue;">E Excusa:</span> ${exc}</p>
+    <p><span style="color:#43a047;">✔️ Asistencia:</span> ${asist} | 
+       <span style="color:#e53935;">A Ausencia:</span> ${aus} | 
+       <span style="color:#fb8c00;">T Tardanza:</span> ${tar} | 
+       <span style="color:#4fc3f7;">E Excusa:</span> ${exc}</p>
     <p>Porcentaje de Asistencia: <strong>${percent}%</strong></p>`;
 
     if (window.barChart) window.barChart.destroy();
@@ -441,121 +776,19 @@ datosEstDiv.innerHTML = `
         labels: ["✔️ Asistencia", "A Ausencia", "T Tardanza", "E Excusa"],
         datasets: [{
           data: [asist, aus, tar, exc],
-          backgroundColor: ["green", "red", "orange", "skyblue"]
+          backgroundColor: ["#43a047", "#e53935", "#fb8c00", "#4fc3f7"]
         }]
       },
       options: {
         responsive: true,
-        plugins: {
-          legend: { display: false }
-        },
+        plugins: { legend: { display: false } },
         scales: {
-          y: { beginAtZero: true, ticks: { font: { size: 16 } } },
-          x: { ticks: { font: { size: 16 } } }
+          y: { beginAtZero: true },
+          x: { ticks: { font: { size: 14 } } }
         }
       }
     });
   }
-
-  // ----------- NOTAS -------------
-
-  let notasData = [];
-  const notasUrl = "https://raw.githubusercontent.com/eliezer319/MiApp/main/Datos1.xlsx";
-
-  async function loadNotas() {
-    try {
-      const res = await fetch(notasUrl);
-      const data = new Uint8Array(await res.arrayBuffer());
-      const workbook = XLSX.read(data, { type: "array" });
-      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-      notasData = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
-      document.getElementById("resultNotas").innerHTML = "Datos de notas cargados. Listo para buscar.";
-    } catch (e) {
-      document.getElementById("resultNotas").innerHTML = "Error cargando notas: " + e;
-    }
-  }
-
-  loadNotas();
-
-  function buscarNotas() {
-    const grupo = document.getElementById("grupoNotas").value.trim().toLowerCase();
-    const alumno = document.getElementById("nombreAlumno").value.trim().toLowerCase();
-    const result = document.getElementById("resultNotas");
-
-    if (!grupo || !alumno) {
-      alert("Por favor ingresa grupo y nombre del alumno.");
-      return;
-    }
-
-    // Filtrar las filas que coincidan con grupo y alumno
-    const filtradas = notasData.filter(r =>
-      String(r["GRUPO"]).trim().toLowerCase() === grupo &&
-      String(r["ESTUDIANTE"]).trim().toLowerCase() === alumno
-    );
-
-    if (filtradas.length === 0) {
-      result.innerHTML = "<p>No se encontraron notas para el alumno y grupo indicados.</p>";
-      return;
-    }
-// Mostrar datos del estudiante
-const infoDiv = document.getElementById("infoNotasEstudiante");
-const datos = filtradas[0];  // tomamos la primera fila porque todas deben ser del mismo alumno
-
-infoDiv.innerHTML = `
-  <h3>Información del Estudiante</h3>
-  <p><strong>Nombre:</strong> ${datos["ESTUDIANTE"]}</p>
-  <p><strong>Grupo:</strong> ${datos["GRUPO"]}</p>
-  <p><strong>Trimestre:</strong> ${datos["TRIMESTRE"]}</p>
-  <p><strong>Año:</strong> ${datos["AÑOS"]}</p>
-`;
-
-    // Armar tabla con resultados
-  // Limpieza inicial
-let html = '';
-
-// Función para redondear números
-const redondear = v => (isNaN(parseFloat(v)) ? v : parseFloat(v).toFixed(1));
-
-// Función para construir una tabla por sección
-const construirTabla = (titulo, claves) => {
-  let tabla = `<div class="seccion"><h2>${titulo}</h2><table><thead><tr><th>${titulo}</th>`;
-  filtradas.forEach(row => {
-    tabla += `<th>${row["ESTUDIANTE"]}</th>`;
-  });
-  tabla += `</tr></thead><tbody>`;
-  
-  claves.forEach(k => {
-    tabla += `<tr><td>${k}</td>`;
-    filtradas.forEach(row => {
-      tabla += `<td>${redondear(row[k])}</td>`;
-    });
-    tabla += `</tr>`;
-  });
-
-  tabla += `</tbody></table></div>`;
-  return tabla;
-};
-
-// Clasificar columnas
-const keys = Object.keys(filtradas[0]).filter(k => k !== "GRUPO" && k !== "ESTUDIANTE");
-const parciales = keys.filter(k => k.startsWith("TEST#") || k === "TEST FINAL");
-const apreciacion = keys.filter(k => k.startsWith("APRECIACION"));
-const final = keys.filter(k => k === "EXAMEN" || k === "BOLETIN");
-
-// Agregar secciones con tablas separadas
-html += construirTabla("Notas Parciales", parciales);
-html += construirTabla("Notas de Apreciación", apreciacion);
-html += construirTabla("Evaluación Final", final);
-
-result.innerHTML = html;
-
-
-
-    // Opcional: gráfico con promedio (si tienes datos numéricos en alguna columna)
-    // Aquí un ejemplo simple contando valores numéricos en la primera columna de notas
-    // Se puede mejorar según estructura real
-  }
-
 </script>
 
 </body>
